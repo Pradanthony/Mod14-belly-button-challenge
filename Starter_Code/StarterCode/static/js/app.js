@@ -76,50 +76,112 @@
 
 
     // Load the data from the JSON file
-    d3.json("https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json")
-    .then(function(data) {
-        // Get the test subject IDs
-        var testSubjectIds = data.names;
-
-        // Select the test subject ID dropdown
-        var testSubjectDropdown = d3.select("#selDataset");
-
-        // Add options to the dropdown
-        testSubjectDropdown.selectAll("option")
-          .data(testSubjectIds)
-          .enter()
-          .append("option")
-          .attr("value", function(d) {
-            return d;
-          })
-          .text(function(d) {
-            return d;
-          });
-
-        // Set the default option
-        var defaultId = testSubjectIds[0];
-        testSubjectDropdown.property("value", defaultId);
-
-        // Initialize the page with the default data
-        optionChanged(defaultId);
-    })
-
-    function optionChanged(selectedId) {
-        // Fetch the metadata from the JSON file
-        d3.json("https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json")
-          .then(function(data) {
-            // Find the metadata for the selected ID
-            var metadata = data.metadata.find(obj => obj.id == selectedId);
+d3.json("https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json").then(function(data) {
+    // Get the test subject IDs
+    var testSubjectIds = data.names;
   
-            // Select the sample-metadata div
-            var sampleMetadata = d3.select("#sample-metadata");
+    // Select the test subject ID dropdown
+    var testSubjectDropdown = d3.select("#selDataset");
   
-            // Clear any existing metadata
-            sampleMetadata.html("");
+    // Add options to the dropdown
+    testSubjectDropdown.selectAll("option")
+      .data(testSubjectIds)
+      .enter()
+      .append("option")
+      .attr("value", function(d) {
+        return d;
+      })
+      .text(function(d) {
+        return d;
+      });
   
-            // Display each key-value pair in the metadata
-            Object.entries(metadata).map(([key, value]) => {
-              var KeyValue = key.charAt(0).toUpperCase() + key.slice(1); // Capitalize the key
-              sampleMetadata.append("p").text(`${KeyValue}: ${value}`);
-            });
-          })}
+    // Set the default option
+    var defaultId = testSubjectIds[0];
+    testSubjectDropdown.property("value", defaultId);
+  
+    // Initialize the page with the default data
+    optionChanged(defaultId);
+  });
+  
+  function optionChanged(selectedId) {
+    // Fetch the data from the JSON file
+    d3.json("https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json").then(function(data) {
+      // Find the metadata for the selected ID
+      var metadata = data.metadata.find(obj => obj.id === parseInt(selectedId));
+  
+      // Select the sample-metadata div
+      var sampleMetadata = d3.select("#sample-metadata");
+  
+      // Clear any existing metadata
+      sampleMetadata.html("");
+  
+      // Display each key-value pair in the metadata
+      Object.entries(metadata).forEach(([key, value]) => {
+        var KeyValue = key.charAt(0).toUpperCase() + key.slice(1); // Capitalize the key
+        sampleMetadata.append("p").text(`${KeyValue}: ${value}`);
+      });
+  
+      // Find the sample data for the selected ID
+      var sampleData = data.samples.find(obj => obj.id === selectedId);
+  
+      // Extract the necessary data for the bubble chart
+      var otu_ids = sampleData.otu_ids;
+      var sample_values = sampleData.sample_values;
+      var otu_labels = sampleData.otu_labels;
+  
+      // Create the trace for the bubble chart
+      var trace = {
+        x: otu_ids,
+        y: sample_values,
+        text: otu_labels,
+        mode: "markers",
+        marker: {
+          size: sample_values,
+          color: otu_ids,
+          colorscale: "Viridis"
+        }
+      };
+  
+      // Create the data array
+      var bubbleData = [trace];
+  
+      // Set the layout for the bubble chart
+      var bubbleLayout = {
+        title: "Bacteria Cultures per Sample",
+        xaxis: { title: "OTU IDs" },
+        yaxis: { title: "Sample Values" },
+        hovermode: "closest"
+      };
+  
+      // Update the bubble chart
+      Plotly.newPlot("bubble", bubbleData, bubbleLayout);
+  
+      // Extract the necessary data for the bar chart
+      var top10SampleValues = sample_values.slice(0, 10).reverse();
+      var top10OTUids = otu_ids.slice(0, 10).reverse().map(id => "OTU " + id);
+      var top10OTUlabels = otu_labels.slice(0, 10).reverse();
+  
+      // Create the trace for the bar chart
+      var barTrace = {
+        x: top10SampleValues,
+        y: top10OTUids,
+        text: top10OTUlabels,
+        type: "bar",
+        orientation: "h"
+      };
+  
+      // Create the data array for the bar chart
+      var barData = [barTrace];
+  
+      // Set the layout for the bar chart
+      var barLayout = {
+        title: "Top 10 OTUs",
+        xaxis: { title: "Sample Values" },
+        yaxis: { title: "OTU IDs" }
+      };
+  
+      // Update the bar chart
+      Plotly.newPlot("bar", barData, barLayout);
+    });
+  }
+  
