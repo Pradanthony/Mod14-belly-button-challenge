@@ -118,8 +118,8 @@
             sampleMetadata.html("");
   
             // Display each key-value pair in the metadata
-            Object.entries(metadata).forEach(([key, value]) => {
-              var capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1); // Capitalize the key
-              sampleMetadata.append("p").text(`${capitalizedKey}: ${value}`);
+            Object.entries(metadata).map(([key, value]) => {
+              var KeyValue = key.charAt(0).toUpperCase() + key.slice(1); // Capitalize the key
+              sampleMetadata.append("p").text(`${KeyValue}: ${value}`);
             });
           })}
